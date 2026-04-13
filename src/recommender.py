@@ -75,18 +75,18 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     score = 0.0
     reasons = []
     
-    # Categorical matches (40 points total)
+    # Categorical matches (27.5 points total: genre halved to 12.5, mood 15)
     if song['genre'] == user_prefs['genre']:
-        score += 25
-        reasons.append("genre match (+25)")
+        score += 12.5  # MODIFIED: Halved from 25 to test sensitivity
+        reasons.append("genre match (+12.5)")
     
     if song['mood'] == user_prefs['mood']:
         score += 15
         reasons.append("mood match (+15)")
     
-    # Numeric similarities with weights (60 points total)
+    # Numeric similarities with weights (51 points total: energy doubled to 16)
     numeric_features = {
-        'energy': 8,
+        'energy': 16,  # MODIFIED: Doubled from 8 to test sensitivity
         'acousticness': 8,
         'instrumentalness': 8,
         'valence': 5,

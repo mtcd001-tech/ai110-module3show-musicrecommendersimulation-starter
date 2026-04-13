@@ -108,6 +108,7 @@ Refined the user profile based on Copilot critique:
 - Lowered `target_liveness` from 0.08 → 0.05 (studio recordings feel more introspective)
 These changes create stronger separation between chill lofi and intense rock, while also better distinguishing the profile from ambient/jazz alternatives.
 
+![alt text](image-1.png)![alt text](image-2.png)![alt text](image-3.png)
 ---
 
 ## Limitations and Risks

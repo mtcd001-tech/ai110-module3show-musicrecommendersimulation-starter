@@ -2,20 +2,14 @@
 
 ## 1. Model Name  
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
-
+VibeMetric 1.0
 ---
 
 ## 2. Intended Use  
 
 Describe what your recommender is designed to do and who it is for. 
 
-Prompts:  
-
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+This recommender is a classroom exploration tool designed to suggest songs based on a user's specific "vibe" (genre, mood, and energy). It assumes the user has clear preferences and is looking for songs within a small, curated catalog. It is not intended for real-world commercial use but rather to demonstrate how weighted scoring logic impacts discovery.
 
 ---
 
@@ -23,39 +17,25 @@ Prompts:
 
 Explain your scoring approach in simple language.  
 
-Prompts:  
+The model uses a Weighted Scoring System. It looks at song attributes like genre, mood, and numerical values like energy, acousticness, and tempo.
 
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
+Match Points: It gives a large point "bonus" if the song’s genre or mood exactly matches the user's preference.
 
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+Similarity Points: For numerical values like energy, it calculates the "gap" between the user's target and the song's actual value. The smaller the gap, the more points the song earns.
 
+Final Ranking: It adds all these points together to create a score out of 100 and sorts the songs from highest to lowest.
 ---
 
 ## 4. Data  
 
-Describe the dataset the model uses.  
-
-Prompts:  
-
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
-
+The catalog consists of 18 songs. The dataset is skewed toward Lofi (16.7%) and Pop (11.1%), while other genres like Metal or Reggae only have one song each. The energy levels in the dataset are clustered between 0.28 and 0.94, meaning there is a complete lack of "ultra-chill" music below 0.28.
 ---
 
 ## 5. Strengths  
 
 Where does your system seem to work well  
 
-Prompts:  
-
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+The system works very well for users with "mainstream" or "middle-of-the-road" tastes. If a user likes Lofi or Pop with moderate energy levels, the system provides several highly accurate and relevant matches that feel intuitive and correct.
 
 ---
 
@@ -63,12 +43,7 @@ Prompts:
 
 Where the system struggles or behaves unfairly. 
 
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
+The system suffers from a significant "Genre Filter Bubble" due to the high original weight (+25) for genre matches, which forces users into narrow categories and prevents cross-genre discovery. Furthermore, there is a "Neutrality Bias" in the energy gap calculation; because the dataset lacks songs with extreme values (below 0.28), users seeking very chill music are mathematically penalized compared to users with moderate preferences. Finally, the exact-match logic for moods creates a "Binary Limitation," where semantically similar moods like 'Chill' and 'Relaxed' receive no shared credit, leading to rigid and often repetitive recommendations.
 
 ---
 
@@ -76,36 +51,22 @@ Prompts:
 
 How you checked whether the recommender behaved as expected. 
 
-Prompts:  
-
-- Which user profiles you tested  
-- What you looked for in the recommendations  
-- What surprised you  
-- Any simple tests or comparisons you ran  
-
-No need for numeric metrics unless you created some.
-
+I tested the system using three distinct profiles: "Lofi Study" (Low Energy/Lofi), "High-Energy Metal" (High Energy/Metal), and "Mainstream Pop" (Medium Energy/Pop). A surprising result was that the "Lofi Study" profile was significantly easier for the system to satisfy because 16.7% of the dataset is Lofi, whereas the "Metal" user was repeatedly suggested the same single song due to low dataset diversity. My experiment of halving the genre weight proved that the system can become more "vibe-focused," but it cannot fully overcome the underlying imbalance of the song catalog.
 ---
 
 ## 8. Future Work  
 
 Ideas for how you would improve the model next.  
 
-Prompts:  
+Dynamic Dataset Balancing: Add more songs to underrepresented genres to break the "single-song" trap.
 
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+Fuzzy Mood Matching: Instead of an "all or nothing" score for moods, I would create groups (e.g., 'Chill' and 'Relaxed' share points) to improve variety.
 
+Non-Linear Scoring: Adjust the energy gap math so it doesn't unfairly punish users who want extreme "edge case" music.
 ---
 
 ## 9. Personal Reflection  
 
 A few sentences about your experience.  
 
-Prompts:  
-
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+My biggest learning moment was discovering the "Extreme Value Penalty"—realizing that my math accidentally punished people with strong tastes just because the data didn't perfectly match their 0.1 or 0.9 energy preference. AI tools were incredibly helpful for generating additional CSV data and explaining the math behind the scores, but I had to double-check the AI's logic when it suggested weight changes that would have made the genre match too powerful. I was surprised by how a few lines of addition and subtraction can make a computer "feel" like it understands my musical taste, even though it's just calculating distances between numbers. This project made me realize that the "algorithms" we complain about on TikTok or Spotify are essentially just a series of human-weighted decisions.
