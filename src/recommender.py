@@ -46,19 +46,78 @@ class Recommender:
         return "Explanation placeholder"
 
 def load_songs(csv_path: str) -> List[Dict]:
-    """
-    Loads songs from a CSV file.
-    Required by src/main.py
-    """
-    # TODO: Implement CSV loading logic
+    """Load songs from CSV file, converting numeric fields to float and id to int."""
+    import csv
+    
     print(f"Loading songs from {csv_path}...")
-    return []
+    songs = []
+    
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Convert numeric fields to float
+            numeric_fields = ['energy', 'tempo_bpm', 'valence', 'danceability', 
+                            'acousticness', 'instrumentalness', 'liveness']
+            for field in numeric_fields:
+                row[field] = float(row[field])
+            
+            # Convert id to int
+            row['id'] = int(row['id'])
+            
+            # title, artist, genre, mood remain as strings
+            songs.append(row)
+    
+    print(f"Loaded {len(songs)} songs.")
+    return songs
+
+def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
+    """Score a song against user preferences; return (score, reasons) tuple."""
+    score = 0.0
+    reasons = []
+    
+    # Categorical matches (40 points total)
+    if song['genre'] == user_prefs['genre']:
+        score += 25
+        reasons.append("genre match (+25)")
+    
+    if song['mood'] == user_prefs['mood']:
+        score += 15
+        reasons.append("mood match (+15)")
+    
+    # Numeric similarities with weights (60 points total)
+    numeric_features = {
+        'energy': 8,
+        'acousticness': 8,
+        'instrumentalness': 8,
+        'valence': 5,
+        'danceability': 5,
+        'liveness': 3
+    }
+    
+    for feature, weight in numeric_features.items():
+        user_value = user_prefs[feature]
+        song_value = song[feature]
+        similarity = 1 - abs(user_value - song_value)
+        points = similarity * weight
+        score += points
+        reasons.append(f"{feature} similarity ({points:.1f}/{weight})")
+    
+    # Handle tempo separately (needs normalization: (bpm - 60) / 110)
+    user_tempo = user_prefs['tempo_bpm']
+    song_tempo = song['tempo_bpm']
+    user_tempo_norm = (user_tempo - 60) / 110
+    song_tempo_norm = (song_tempo - 60) / 110
+    tempo_similarity = 1 - abs(user_tempo_norm - song_tempo_norm)
+    tempo_points = tempo_similarity * 6
+    score += tempo_points
+    reasons.append(f"tempo_bpm similarity ({tempo_points:.1f}/6)")
+    
+    return (score, reasons)
 
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """
-    Functional implementation of the recommendation logic.
-    Required by src/main.py
-    """
-    # TODO: Implement scoring and ranking logic
-    # Expected return format: (song_dict, score, explanation)
-    return []
+    """Score all songs, sort by score, and return top k recommendations."""
+    # Score all songs using list comprehension and unpack the tuple
+    scored_songs = [(song, *score_song(user_prefs, song)) for song in songs]
+    
+    # Sort by score (index 1) in descending order and return top k
+    return sorted(scored_songs, key=lambda x: x[1], reverse=True)[:k]

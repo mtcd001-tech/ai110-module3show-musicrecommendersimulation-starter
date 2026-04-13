@@ -11,14 +11,13 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+This simulation builds a content-based music recommender. It represents songs as a collection of audio and genre features, builds a user taste profile from preferred genres, moods, and energy levels, then scores every song in the catalog against that profile using a weighted sum. The top-scoring songs become the recommendations.
 
 ---
 
 ## How The System Works
 
-Explain your design in plain language.
-
+Real-world music recommenders like Spotify combine two signals: content-based filtering (matching song features to a user's known preferences) and collaborative filtering (surfacing songs enjoyed by similar users), layered with engagement feedback loops. This simulation focuses on the content-based side — scoring every song against a user profile using a transparent weighted sum — prioritizing explainability over black-box complexity.
 Some prompts to answer:
 
 - What features does each `Song` use in your system
@@ -29,6 +28,34 @@ Some prompts to answer:
 
 You can include a simple diagram or bullet list if helpful.
 
+### Algorithm Recipe (max 100 points)
+
+**Categorical matching:**
+- Genre exact match → +25 pts
+- Mood exact match → +15 pts
+
+**Numeric similarity** (formula: `1 - |user_value - song_value|`):
+- Energy → × 8 pts
+- Acousticness → × 8 pts
+- Instrumentalness → × 8 pts
+- Tempo → × 6 pts (normalized: `(bpm - 60) / 110`)
+- Valence → × 5 pts
+- Danceability → × 5 pts
+- Liveness → × 3 pts
+
+Songs scoring 70–85/100 are considered excellent recommendations.
+
+### Data Flow
+
+Input (User Profile) → Loop over every song in CSV → Score each song → Sort descending → Output Top K
+
+### Expected Biases
+
+- The system may over-prioritize genre (25 pts), causing it to rank a mediocre lofi track above a high-matching jazz or ambient song that fits the mood equally well.
+- Songs with rare or unlisted genres/moods will never receive categorical points, systematically underscoring them regardless of how well their audio features match.
+- The profile is tuned for one specific user — a different listener (e.g. high-energy pop fan) would get poor results without re-tuning the weights.
+
+![alt text](image.png)
 ---
 
 ## Getting Started
@@ -70,9 +97,16 @@ You can add more tests in `tests/test_recommender.py`.
 
 Use this section to document the experiments you ran. For example:
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+Added two new numerical features suggested by Copilot:
+
+Instrumentalness – measures the likelihood that a track contains no vocals (0.0 = purely vocal, 1.0 = purely instrumental)
+Liveness – indicates the probability that a track was recorded in front of a live audience (0.0 = studio recording, 1.0 = live performance)
+
+Refined the user profile based on Copilot critique:
+- Lowered `target_danceability` from 0.62 → 0.47 (chill moods resist rhythm-forward music)
+- Raised `target_acousticness` from 0.75 → 0.80 (acoustic instruments signal "relaxed" more strongly)
+- Lowered `target_liveness` from 0.08 → 0.05 (studio recordings feel more introspective)
+These changes create stronger separation between chill lofi and intense rock, while also better distinguishing the profile from ambient/jazz alternatives.
 
 ---
 
